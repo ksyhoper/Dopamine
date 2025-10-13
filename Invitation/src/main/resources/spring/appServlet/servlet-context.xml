@@ -27,5 +27,4 @@
 	
 	<context:component-scan base-package="dopamine.third.project" />
 	
-	
 </beans:beans>

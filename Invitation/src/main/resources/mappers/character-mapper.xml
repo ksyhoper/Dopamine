@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="characterMapper">
+	<resultMap type="Characters" id="character_rm">
+		<id property="no" column="NO"/>
+		<result property="name" column="NAME"/>
+		<result property="alias" column="ALIAS"/>
+		<result property="birthday" column="BIRTHDAY"/>
+		<result property="description" column="DESCRIPTION"/>
+		<result property="delFlag" column="DEL_FLAG"/>
+		<result property="authority" column="AUTHORITY"/>
+		<result property="picture" column="PICTURE"/>
+	</resultMap>
+	
+	<select id="characterList" resultMap="character_rm">
+		SELECT NO, NAME, ALIAS, TO_CHAR(BIRTHDAY, 'YYYY-MM-DD') BIRTHDAY, DESCRIPTION, AUTHORITY, PICTURE
+		FROM CHARACTERS
+		WHERE DEL_FLAG = 'N'
+	</select>
+</mapper>
