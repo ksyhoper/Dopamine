@@ -1,0 +1,517 @@
+/* 대화형 RPG 스타일 */
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#gameContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+}
+
+/* 게임 화면 */
+#gameScreen {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 200px); /* 대화창 공간 확보 */
+    overflow: hidden;
+}
+
+/* 배경 장면 */
+#sceneBackground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #111;
+}
+
+#sceneBackground.lights-on {
+    background-color: #4a4a4a;
+}
+
+/* 캐릭터 이미지 */
+#characterDisplay {
+    position: absolute;
+    bottom: 0;
+    left: 50px;
+    z-index: 10;
+    animation: fadeIn 1s ease;
+    width: 400px;
+    height: 400px;
+}
+
+.character-sprite {
+    width: 100%;
+    height: 200%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+    transition: all 0.3s ease;
+}
+
+.character-sprite.talking {
+    animation: bounce 0.5s ease infinite;
+}
+
+
+.character-sprite.hurt {
+    animation: shake 0.5s ease;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+/* 대화창 (하단 고정) */
+#dialogueBox {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.95) 100%);
+    border-top: 3px solid #444;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 100;
+    display:flex;
+    justify-content: center;
+    background-color: #1a1a1a;
+}
+
+#dialogueBox2 {
+	width: 90%;
+}
+
+.speaker-name {
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+.dialogue-text-container {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #555;
+    border-radius: 10px;
+    padding: 15px 20px;
+    min-height: 80px;
+    margin-bottom: 10px;
+    background-color : #1a1a1a;
+}
+
+.dialogue-text {
+    color: #fff;
+    font-size: 18px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.dialogue-controls {
+    text-align: right;
+}
+
+.dialogue-btn {
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.3s ease;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.dialogue-btn:hover {
+    background: rgba(0, 0, 0, 0.5);
+    transform: scale(1.1);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* 선택지 메뉴 */
+#choiceMenu {
+    position: fixed;
+    bottom: 220px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    max-width: 90%;
+    z-index: 101;
+}
+
+.choice-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.choice-btn {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    color: #fff;
+    border: 2px solid #666;
+    border-radius: 10px;
+    padding: 15px 20px;
+    font-size: 16px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.choice-btn:hover {
+    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+    border-color: #888;
+    transform: translateX(10px);
+}
+
+.choice-btn:before {
+    content: '⪼';
+    color: #fff;
+    margin-right: 5px;
+}
+
+/* 플레이어 정보 */
+#playerInfo {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #444;
+    border-radius: 10px;
+    padding: 15px;
+    color: #fff;
+    font-size: 14px;
+    z-index: 100;
+    min-width: 200px;
+    display:grid;
+    justify-content:center;
+}
+
+.character-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #fff;
+}
+
+.character-status {
+    color: #4CAF50;
+}
+
+/* 생명 하트 */
+.health-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.health-label {
+    color: #fff;
+    margin-right: 5px;
+    font-weight : bold;
+}
+
+.heart {
+    width: 24px;
+    height: 24px;
+    position: relative;
+    display: inline-block;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.heart.lost {
+    animation: heartbreak 0.5s ease;
+    opacity: 0.3;
+}
+
+.heart .heartImg {
+    width: 100%;
+    height: 100%;
+    fill: #ff4444;
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+}
+
+.heart.lost .heartImg {
+    fill: #444;
+    filter: none;
+}
+
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    10% {
+        transform: scale(1.1);
+    }
+    20% {
+        transform: scale(1);
+    }
+}
+
+@keyframes heartbreak {
+    0% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.3) rotate(-10deg);
+    }
+    50% {
+        transform: scale(0.8) rotate(10deg);
+    }
+    75% {
+        transform: scale(1.1) rotate(-5deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.3;
+    }
+}
+
+/* 인벤토리 */
+#inventory {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 200px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #444;
+    border-radius: 10px;
+    padding: 15px;
+    color: #fff;
+    z-index: 100;
+}
+
+.inventory-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #444;
+    padding-bottom: 5px;
+    color: #fff;
+    display:flex;
+    justify-content:center;
+}
+
+.inventory-items {
+    min-height: 50px;
+}
+
+.inventory-item {
+    background: rgba(50, 50, 50, 0.8);
+    border: 1px solid #666;
+    border-radius: 5px;
+    padding: 8px;
+    margin: 5px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+/* .inventory-item:hover {
+    background: rgba(80, 80, 80, 0.9);
+} */
+
+/* 어둠 효과 */
+#darkness {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.90);
+    pointer-events: none;
+    z-index: 50;
+    transition: opacity 0.5s ease;
+}
+
+/* 손전등 효과 */
+#darkness.flashlight-on {
+    background: radial-gradient(
+        circle 200px at 50% 50%,
+        rgba(0, 0, 0, 0.1) 0%,
+        rgba(0, 0, 0, 0.5) 50%,
+        rgba(0, 0, 0, 0.9) 80%,
+        rgba(0, 0, 0, 0.98) 100%
+    );
+}
+
+/* 방 아이템들 */
+/* 방 아이템들 - 이미지 기반 */
+.room-item {
+    position: absolute;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    
+    /* 아이소메트릭 효과 */
+   /*  transform-style: preserve-3d;
+    transform: rotateX(60deg) rotateZ(-45deg);
+     */
+    /* 픽셀 아트 느낌 */
+   /*  image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges; */
+}
+
+/* 손전등이 켜졌을 때만 클릭 가능 */
+.room-item.flashlight-active {
+    pointer-events: auto;
+}
+
+.room-item .item-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    
+    /* 픽셀 아트 렌더링 */
+    /* image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges; */
+    
+    /* 그림자 효과 */
+    filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* .room-item:hover .item-image {
+    filter: 
+        drop-shadow(0 8px 16px rgba(255, 215, 0, 0.4))
+        brightness(1.0);
+} */
+
+#door {
+    top: 10%;
+    right: 100px;
+    width: 540px;
+    height: 600px;
+}
+
+#table {
+    bottom: 150px;
+    left: 40%;
+    width: 500px;
+    height: 400px;
+}
+
+#chair {
+    bottom: 150px;
+    left: 20%;
+    width: 300px;
+    height: 360px;
+}
+
+
+/* 모달 스타일 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid #666;
+    text-align: center;
+    min-width: 350px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.modal-content.victory {
+    border-color: #4CAF50;
+    box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+}
+
+.modal-title {
+    color: #4CAF50;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.modal-message {
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 25px;
+    line-height: 1.4;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.modal-button {
+    background-color: #444;
+    color: #fff;
+    border: 2px solid #666;
+    padding: 10px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    min-width: 80px;
+}
+
+.modal-button.confirm {
+    background-color: #4CAF50;
+    border-color: #45a049;
+}
+
+.modal-button.cancel {
+    background-color: #f44336;
+    border-color: #da190b;
+}
+
+.modal-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-50px) scale(0.8);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
