@@ -11,6 +11,7 @@ $(document).ready(function() {
         health: 3,
         maxHealth: 3,
         chosenActions: [], // 선택했던 action들을 기록
+        selectedItem: null  // 선택된 아이템 추가
     };
 
     let mouseX = window.innerWidth / 2;
@@ -110,7 +111,7 @@ $(document).ready(function() {
                 { speaker: '시스템', text: '어떻게 하시겠습니까?',
                     choices: [
                         { text: '계속 주변을 둘러본다', action: 'keepLookAround' },
-                        { text: '계속 소리를 지른다', action: 'keepShouting', danger: true },
+                        { text: '소리를 지른다', action: 'shout'},
                         { text: '무작정 앞으로 달려본다', action: 'runBlindly', danger: true },
                         { text: '허공을 더듬어본다', action: 'fumbleAir', danger:true }
                     ]
@@ -123,7 +124,7 @@ $(document).ready(function() {
                 { speaker: '시스템', text: '어떻게 하시겠습니까?',
                     choices: [
                         { text: '주변을 둘러본다', action: 'keepLookAround' },
-                        { text: '계속 소리를 지른다', action: 'keepShouting', danger: true },
+                        { text: '소리를 질러본다', action: 'shout' },
                         { text: '무작정 앞으로 달려본다', action: 'runBlindly', danger: true },
                         { text: '허공을 더듬어본다', action: 'fumbleAir', danger:true }
                     ]
@@ -151,7 +152,8 @@ $(document).ready(function() {
                 { speaker: characterName, text: 'ㅁㅊ.. 어디다가 가둬놓은거야..?' },
                 { speaker: characterName, text: '이제 무엇을 할까?',
                     choices : [
-                        {text : '주변을 둘러본다', action : 'lookAround'},
+                        { text : '주변을 둘러본다', action : 'lookAround'},
+                        { text: '계속 소리를 지른다', action: 'keepShouting', danger: true },
                         { text: '무작정 앞으로 달려본다', action: 'runBlindly', danger: true },
                         { text: '허공을 더듬어본다', action: 'fumbleAir', danger:true }
                     ]
@@ -168,7 +170,8 @@ $(document).ready(function() {
                     choices : [
                         {text : '주변을 둘러본다', action : 'lookAround'},
                         {text : '소리를 질러본다', action : 'shout'},
-                        { text: '허공을 더듬어본다', action: 'fumbleAir', danger:true }
+                        { text: '무작정 앞으로 달려본다', action: 'runBlindly', danger: true },
+                        {text: '허공을 더듬어본다', action: 'fumbleAir', danger:true }
                     ]
                 }
             ],
@@ -202,34 +205,78 @@ $(document).ready(function() {
                     ]
                 }
             ],
+            /* 손전등 */
             'turnOnFlashlight': [
                 { speaker: '시스템', text: '찰칵!' },
                 { speaker: characterName, text: '오! 주변이 보인다!' },
-                { speaker: characterName, text: '마우스를 움직여서 주변을 탐색해보자!' }
+                { speaker: '시스템', text: '마우스를 움직여서 주변을 탐색해보자!' }
             ],
             'saveFlashlight': [
                 { speaker: characterName, text: '일단 아껴두자. 나중에 필요할 수도 있어.' },
                 { speaker: '시스템', text: '인벤토리에서 손전등을 클릭하면 켤 수 있습니다.' }
             ],
             'examineDesk': [
-                { speaker: characterName, text: '책상 위에 책 한 권이 놓여있다.' },
-                { speaker: characterName, text: '책을 펼쳐볼까?' },
-                { speaker: '시스템', text: '책 사이에서 무언가 떨어졌다!',
+                { speaker: characterName, text: '책상 위에는 책 여러 권이 놓여있다.' },
+                { speaker: characterName, text: '책상 서랍은 잠겨있다.' },
+            ],
+            'examineBook':[
+                {speaker:'시스템', text: '가장 위에 있는 책은 <아오야마 고쇼-명탐정 코난>이다.'},
+                {speaker:characterName, text: '이거 재밌지...ㅎ'},
+                {speaker:'시스템', text: '중간에 있는 책은 <스즈키 코지-링>이다.'},
+                {speaker:characterName, text: '영화가 더 유명하지 않나..? 이거는..?'},
+                {speaker:'시스템', text: '가장 아래에 있는 책은 <김의경-처음이라는 도파민>이다.'},
+                {speaker:characterName, text: '이 책은 뭐지..?'},
+                {speaker:characterName, text: '책을 살펴볼까?',
+                    choices:[
+                        {text: '명탐정 코난을 읽어본다.', action:'FirstBook'},
+                        {text: '링을 읽어본다.', action:'SecondBook'},
+                        {text: '처음이라는 도파민을 읽어본다.', action:'ThirdBook'},
+                        {text: '책 볼 시간이 없어. 다른 데를 더 찾아보자.', action:'leaveBook'}
+                    ]
+                }
+            ],
+            'FirstBook':[
+                {speaker:characterName, text:'역시 코난이야! 범인은 바로 하나!!!! (아닌가..?)'},
+                {speaker:characterName, text:'그냥 즐거웠다...'},
+                {speaker:characterName, text: '다른 책을 살펴볼까?',
+                    choices:[
+                        {text: '명탐정 코난을 읽어본다.', action:'FirstBook'},
+                        {text: '링을 읽어본다.', action:'SecondBook'},
+                        {text: '처음이라는 도파민을 읽어본다.', action:'ThirdBook'},
+                        {text: '책 볼 시간이 없어. 다른 데를 더 찾아보자.', action:'leaveBook'}
+                    ]
+                }
+
+            ],
+            'SecondBook':[
+                {speaker:characterName, text:'와.. 링이 원작이 책이었구나.. 으으 소름끼쳐'},
+                {speaker:'시스템', text:'툭'},
+                {speaker:'시스템', text:'책 사이에서 무언가 떨어졌다!',
                     choices: [
                         { text: '주워본다', action: 'pickupKey' }
                     ]
                 }
             ],
+            'ThirdBook':[
+                {speaker:characterName, text:'이거 처음 보는 책인데 역시 첫키스는 조심스럽게하는구나. 우마이'},
+                {speaker:characterName, text:'성장통 오네..'},
+                {speaker:characterName, text: '다른 책을 살펴볼까?',
+                    choices:[
+                        {text: '명탐정 코난을 읽어본다.', action:'FirstBook'},
+                        {text: '링을 읽어본다.', action:'SecondBook'},
+                        {text: '처음이라는 도파민을 읽어본다.', action:'ThirdBook'},
+                        {text: '책 볼 시간이 없어. 다른 데를 더 찾아보자.', action:'leaveBook'}
+                    ]
+                }
+
+            ],
+            'leaveBook':[
+                {speaker:characterName, text:'책 볼 시간 없어. 어두워서 눈도 나빠져'}
+            ],
             'pickupKey': [
                 { speaker: characterName, text: '작은 열쇠다!' },
                 { speaker: '시스템', text: '열쇠를 획득했습니다.' },
-                { speaker: characterName, text: '이걸로 뭘 열 수 있을까?' },
-                { speaker: characterName, text: '책상 서랍을 열어볼까?',
-                    choices: [
-                        { text: '서랍을 연다', action: 'openDrawer' },
-                        { text: '더 탐색한다', action: 'continueExplore' }
-                    ]
-                }
+                { speaker: characterName, text: '이걸로 뭘 열 수 있을까?'}
             ],
             'openDrawer': [
                 { speaker: characterName, text: '열쇠로 서랍을 연다...' },
@@ -239,6 +286,19 @@ $(document).ready(function() {
                 { speaker: characterName, text: '...잠깐, 뭔가 소리가 들린다.' },
                 { speaker: '시스템', text: '철컥... 문이 열리는 소리가 들렸다!' },
                 { speaker: characterName, text: '드디어 나갈 수 있겠어!' }
+            ],
+            'lookDrawer':[
+                { speaker: characterName, text: '서랍 안에 뭔가 있다!' },
+                { speaker: '시스템', text: '초대장을 획득했습니다.' },
+            ],
+            'lookDoor' : [
+                { speaker: characterName, text: '어? 문이 열려있잖아?' },
+                { speaker: characterName, text: '나갈까?' ,
+                    choices:[
+                        {text:'나가자!!!!!!!!!', action:'exitRoom'},
+                        {text:'아니야.. 뭔가 구려..', action:'continueExplore'}
+                    ]
+                },
             ],
             'continueExplore': [
                 { speaker: characterName, text: '좀 더 탐색해보자...' }
@@ -439,20 +499,43 @@ $(document).ready(function() {
             case 'examineDesk':
                 currentScenario = dialogueScenarios['examineDesk'];
                 break;
+            case 'examineBook':
+                currentScenario = dialogueScenarios['examineBook'];
+                break;
+            case 'FirstBook':
+                currentScenario = dialogueScenarios['FirstBook'];
+                break;
+            case 'SecondBook':
+                currentScenario = dialogueScenarios['SecondBook'];
+                break;
+            case 'ThirdBook':
+                currentScenario = dialogueScenarios['ThirdBook'];
+                break;
+             case 'leaveBook':
+                currentScenario = dialogueScenarios['leaveBook'];
+                break;
             case 'pickupKey':
                 currentScenario = dialogueScenarios['pickupKey'];
                 gameState.hasKey = true;
-                addToInventory('열쇠');
+                  setTimeout(() => {
+                    addToInventory('열쇠');
+                }, 3000);
                 break;
             case 'openDrawer':
                 currentScenario = dialogueScenarios['openDrawer'];
-                gameState.hasInvitation = true;
                 gameState.doorUnlocked = true;
-                addToInventory('초대장');
                 $('#door').css('background', 'linear-gradient(45deg, #228B22, #32CD32)');
                 setTimeout(() => {
                     $('#victoryModal').css('display', 'flex');
                 }, 3000);
+                break;
+            case 'lookDrawer':
+                currentScenario = dialogueScenarios['lookDrawer'];
+                gameState.hasInvitation = true;
+                addToInventory('초대장');
+                break;
+            case 'lookDoor':
+                currentScenario = dialogueScenarios['lookDoor'];
                 break;
             case 'continueExplore':
                 currentScenario = dialogueScenarios['continueExplore'];
@@ -490,8 +573,32 @@ $(document).ready(function() {
             $('#inventoryItems').append(itemDiv);
             
             itemDiv.on('click', function() {
-                useItem(item);
+                selectItem(item, $(this));
             });
+        }
+    }
+
+    // 아이템 선택/해제 함수 추가
+    function selectItem(item, $element) {
+        // 이미 선택된 아이템을 다시 클릭하면 해제
+        if (gameState.selectedItem === item) {
+            gameState.selectedItem = null;
+            $('.inventory-item').removeClass('selected');
+            $('#gameScreen').css('cursor', 'default');
+        } else {
+            // 새 아이템 선택
+            gameState.selectedItem = item;
+            $('.inventory-item').removeClass('selected');
+            $element.addClass('selected');
+            
+            // 커서 변경 (선택된 아이템에 따라)
+            if (item === '열쇠') {
+                $('#gameScreen').css('cursor', 'url(/resources/images/key-cursor.png), auto');
+            } else if (item === '초대장') {
+                $('#gameScreen').css('cursor', 'url(/resources/images/invitation-cursor.png), auto');
+            } else {
+                $('#gameScreen').css('cursor', 'pointer');
+            }
         }
     }
     
@@ -542,35 +649,81 @@ $(document).ready(function() {
     // 방 아이템 클릭
     $('#door').on('click', function() {
         if(!gameState.flashLightOn) return;
-        if (gameState.doorUnlocked) {
+        // 열쇠가 선택된 상태에서 문 클릭
+        if (gameState.selectedItem === '열쇠' && !gameState.doorUnlocked) {
+            currentScenario = [
+                { speaker: characterName, text: '뭐야..? 열쇠구멍이 없잖아!' },
+                { speaker: characterName, text: '다른 곳에 사용해야 할 것 같은데...' }
+            ];
+            currentDialogueIndex = 0;
+            showNextDialogue();
+        }else if (gameState.doorUnlocked) {
             $('#victoryModal').css('display', 'flex');
         } else {
             typeDialogue('문이 잠겨있다. 어떻게 열어야 할까?');
         }
     });
     
+    //테이블 클릭
     $('#table').on('click', function() {
         if(!gameState.flashLightOn) return;
-        if (!gameState.hasKey) {
-            currentScenario = dialogueScenarios['examineDesk'];
-            currentDialogueIndex = 0;
-            showNextDialogue();
-        } else if (gameState.hasKey && !gameState.hasInvitation) {
+        // 열쇠가 선택된 상태에서 책상 클릭
+        if (gameState.selectedItem === '열쇠' && gameState.hasKey && !gameState.hasInvitation) {
             currentScenario = [
                 { speaker: characterName, text: '열쇠로 서랍을 열어볼까?' },
-                { speaker: '시스템', text: '서랍을 여시겠습니까?',
-                    choices: [
-                        { text: '연다', action: 'openDrawer' },
-                        { text: '나중에', action: 'continueExplore' }
+                { speaker: '시스템', text: '찰칵! 서랍이 열렸다!' },
+                { speaker: '시스템', text: '철컥... 문이 열리는 소리가 들렸다!' },
+                { speaker: characterName, text: '뭐지? 문도 열렸나..? 드디어?',
+                    choices:[
+                        {text:'서랍을 확인한다.', action:'lookDrawer'},
+                        {text:'문을 확인한다.', action:'lookDoor'},
                     ]
                 }
             ];
             currentDialogueIndex = 0;
+            gameState.hasInvitation = true;
+            gameState.doorUnlocked = true;
+            gameState.selectedItem = null; // 아이템 사용 후 선택 해제
+            $('.inventory-item').removeClass('selected');
+            $('#gameScreen').css('cursor', 'default');
+            
+            setTimeout(() => {
+                addToInventory('초대장');
+            }, 2000);
+            
             showNextDialogue();
-        } else {
+        }
+        // 일반 클릭 (열쇠 없을 때)
+        else if (!gameState.hasKey) {
+            currentScenario = dialogueScenarios['examineDesk'];
+            currentDialogueIndex = 0;
+            showNextDialogue();
+        }
+        // 이미 초대장을 얻었을 때
+        else if (gameState.hasInvitation) {
             typeDialogue('더 이상 특별한 것이 없다.');
         }
+        // 열쇠는 있지만 선택하지 않았을 때
+        else {
+            currentScenario = [
+                { speaker: characterName, text: '서랍이 잠겨있다.' },
+                { speaker: characterName, text: '인벤토리에서 열쇠를 선택해서 사용해보자.' }
+            ];
+            currentDialogueIndex = 0;
+            showNextDialogue();
+        }
     });
+
+    $('#book').on('click', function() {
+    if(!gameState.flashLightOn) return;
+    if (!gameState.hasKey) {
+        currentScenario = dialogueScenarios['examineDesk'];
+        currentDialogueIndex = 0;
+        showNextDialogue();
+    } else {
+        typeDialogue('이미 책을 확인했다.');
+    }
+});
 
     $('#chair').on('click', function() {
         if(!gameState.flashLightOn) return;

@@ -32,6 +32,10 @@
                     <img src="/resources/images/items/blackDesk.png" alt="책상" class="item-image">
                 </div>
                 
+                <div class="room-item" id="book">
+                    <img src="/resources/images/items/book.png" alt="책" class="item-image">
+                </div>
+
                 <div class="room-item" id="chair">
                     <img src="/resources/images/items/blackChair.png" alt="의자" class="item-image">
                 </div>
