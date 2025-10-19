@@ -178,7 +178,7 @@ body {
 /* 선택지 메뉴 */
 #choiceMenu {
     position: fixed;
-    bottom: 220px;
+    bottom: 250px;
     left: 50%;
     transform: translateX(-50%);
     width: 600px;
@@ -341,6 +341,14 @@ body {
 }
 
 .inventory-item {
+    padding: 8px;
+    margin: 5px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.inventory-items .selected{
     background: rgba(50, 50, 50, 0.8);
     border: 1px solid #666;
     border-radius: 5px;

@@ -2,6 +2,7 @@ $(document).ready(function() {
     let gameState = {
         hasFlashlight: false,
         flashLightOn: false,
+        hasExaminedBook: false,
         hasKey: false,
         hasInvitation: false,
         doorUnlocked: false,
@@ -123,7 +124,6 @@ $(document).ready(function() {
                 { speaker: characterName, text: '진짜 김승연.. 나한테 왜 그래..' },
                 { speaker: '시스템', text: '어떻게 하시겠습니까?',
                     choices: [
-                        { text: '주변을 둘러본다', action: 'keepLookAround' },
                         { text: '소리를 질러본다', action: 'shout' },
                         { text: '무작정 앞으로 달려본다', action: 'runBlindly', danger: true },
                         { text: '허공을 더듬어본다', action: 'fumbleAir', danger:true }
@@ -278,18 +278,10 @@ $(document).ready(function() {
                 { speaker: '시스템', text: '열쇠를 획득했습니다.' },
                 { speaker: characterName, text: '이걸로 뭘 열 수 있을까?'}
             ],
-            'openDrawer': [
-                { speaker: characterName, text: '열쇠로 서랍을 연다...' },
-                { speaker: '시스템', text: '찰칵!' },
-                { speaker: characterName, text: '서랍 안에 초대장이 있다!' },
-                { speaker: '시스템', text: '초대장을 획득했습니다.' },
-                { speaker: characterName, text: '...잠깐, 뭔가 소리가 들린다.' },
-                { speaker: '시스템', text: '철컥... 문이 열리는 소리가 들렸다!' },
-                { speaker: characterName, text: '드디어 나갈 수 있겠어!' }
-            ],
             'lookDrawer':[
                 { speaker: characterName, text: '서랍 안에 뭔가 있다!' },
                 { speaker: '시스템', text: '초대장을 획득했습니다.' },
+                { speaker: characterName, text: '엥? 이게 뭐지? 어두우니까 밖에 나가서 보자!' },
             ],
             'lookDoor' : [
                 { speaker: characterName, text: '어? 문이 열려있잖아?' },
@@ -302,7 +294,10 @@ $(document).ready(function() {
             ],
             'continueExplore': [
                 { speaker: characterName, text: '좀 더 탐색해보자...' }
-            ]
+            ],
+            'exitRoom': [
+                { speaker: characterName, text: '드디어 나간다!' }
+            ],
         };
     }else{
         $('#interactionModal').css('display', 'flex');
@@ -418,16 +413,71 @@ $(document).ready(function() {
         $('#choiceContainer').empty();
         $('#continueBtn').hide();
         
-        // 이미 선택한 것들 제외
-        const availableChoices = choices.filter(choice => 
-            !gameState.chosenActions.includes(choice.action)
-        );
+        // 액션 매핑 관계 정의
+        const keepActionMapping = {
+            'lookAround': 'keepLookAround',
+            'shout': 'keepShouting',
+            'fumbleAir': 'keepFumble'
+        };
         
-        // 선택지가 하나도 없으면 첫 번째만 표시 (무한루프 방지)
-        const displayChoices = availableChoices.length > 0 ? availableChoices : [choices[0]];
+        // 표시할 선택지를 원본 순서대로 처리
+        let displayChoices = choices.map(choice => {
+            // keep 액션이면서 이미 선택한 경우 → 제거
+            if (choice.action.startsWith('keep') && gameState.chosenActions.includes(choice.action)) {
+                return null;
+            }
+            
+            // keep 액션이지만 아직 선택 안한 경우 → 유지
+            if (choice.action.startsWith('keep')) {
+                return choice;
+            }
+            
+            // 일반 액션이고, 이미 선택했으며, keep 버전이 존재하는 경우
+            if (gameState.chosenActions.includes(choice.action) && keepActionMapping[choice.action]) {
+                const keepAction = keepActionMapping[choice.action];
+                
+                // keep 액션도 이미 선택했으면 이 선택지도 제거
+                if (gameState.chosenActions.includes(keepAction)) {
+                    return null;
+                }
+                
+                // keep 선택지를 찾아서 대체
+                const keepChoice = choices.find(c => c.action === keepAction);
+                if (keepChoice) {
+                    return keepChoice;
+                }
+                
+                // choices에 keep 버전이 없으면 새로 만들기
+                const keepTexts = {
+                    'keepLookAround': '계속 주변을 둘러본다',
+                    'keepShouting': '계속 소리를 지른다',
+                    'keepFumble': '계속 더듬어본다'
+                };
+                
+                return {
+                    text: keepTexts[keepAction] || choice.text,
+                    action: keepAction,
+                    danger: choice.danger
+                };
+            }
+            
+            // 아직 선택하지 않은 일반 액션 → 유지
+            if (!gameState.chosenActions.includes(choice.action)) {
+                return choice;
+            }
+            
+            // 이미 선택한 일반 액션이지만 keep 버전이 없는 경우 → 제거
+            return null;
+        }).filter(choice => choice !== null);  // null 제거
+        
+        // 선택지가 없으면 첫 번째만 표시 (무한루프 방지)
+        if (displayChoices.length === 0) {
+            displayChoices = [choices[0]];
+        }
         
         displayChoices.forEach(choice => {
-            const btn = $('<button class="choice-btn"></button>')
+            const dangerClass = choice.danger ? ' danger' : '';
+            const btn = $(`<button class="choice-btn${dangerClass}"></button>`)
                 .text(choice.text)
                 .on('click', function() {
                     $('#choiceMenu').hide();
@@ -517,28 +567,35 @@ $(document).ready(function() {
             case 'pickupKey':
                 currentScenario = dialogueScenarios['pickupKey'];
                 gameState.hasKey = true;
-                  setTimeout(() => {
-                    addToInventory('열쇠');
-                }, 3000);
-                break;
-            case 'openDrawer':
-                currentScenario = dialogueScenarios['openDrawer'];
-                gameState.doorUnlocked = true;
-                $('#door').css('background', 'linear-gradient(45deg, #228B22, #32CD32)');
                 setTimeout(() => {
-                    $('#victoryModal').css('display', 'flex');
-                }, 3000);
+                    addToInventory('열쇠');
+                }, 2000);
                 break;
             case 'lookDrawer':
                 currentScenario = dialogueScenarios['lookDrawer'];
                 gameState.hasInvitation = true;
-                addToInventory('초대장');
+                setTimeout(()=>{
+                    addToInventory('초대장');
+                }, 2000);
                 break;
             case 'lookDoor':
                 currentScenario = dialogueScenarios['lookDoor'];
                 break;
             case 'continueExplore':
                 currentScenario = dialogueScenarios['continueExplore'];
+                break;
+            case 'exitRoom':
+                currentScenario = dialogueScenarios['exitRoom'];
+                // 대사 후 실제로 나가는 함수 호출
+                setTimeout(() => {
+                    exitRoom();
+                }, 2000);
+                break;
+            case 'lookInvitation':
+                lookInvitation();
+                break;
+            case 'retry':
+                location.reload();
                 break;
         }
         
@@ -593,59 +650,147 @@ $(document).ready(function() {
             
             // 커서 변경 (선택된 아이템에 따라)
             if (item === '열쇠') {
-                $('#gameScreen').css('cursor', 'url(/resources/images/key-cursor.png), auto');
-            } else if (item === '초대장') {
-                $('#gameScreen').css('cursor', 'url(/resources/images/invitation-cursor.png), auto');
+                $('#gameScreen').css('cursor', 'url(/resources/images/items/key-cursor.png), auto');
+            } else if (item === '손전등') {
+                $('#gameScreen').css('cursor', 'url(/resources/images/items/flashlight-cursor.png), auto');
             } else {
                 $('#gameScreen').css('cursor', 'pointer');
             }
         }
     }
-    
-     // 아이템 사용
-    function useItem(item) {
-        if (item === '손전등' && !gameState.flashLightOn) {
+
+    function exitRoom() {
+        // 기존 방 요소들 숨기기
+        $('.room-item').hide();
+        $('#darkness').hide();
+        $('#inventory').hide();
+        $('#playerInfo').hide();
+        
+        $('#sceneBackground').css({
+            'background-image': 'url(/resources/images/outside.png)',
+            'background-size': 'cover',
+            'background-position': 'center',
+            'background-repeat' : 'no-repeat', 
+            'opacity' : '0'
+        }).animate({opacity:1}, 1500);
+
+        // 초대장 유무에 따라 다른 엔딩
+        if (gameState.hasInvitation) {
+            
+            setTimeout(() => {
             currentScenario = [
-                { speaker: '시스템', text: '찰칵!' },
-                { speaker: characterName, text: '손전등을 켰다! 이제 주변이 보인다!' },
-                { speaker: '시스템', text: '마우스를 움직여서 주변을 탐색해보자!' }
+                { speaker: characterName, text: '후... 드디어 나왔다!' },
+                { speaker: characterName, text: '초대장 이건 뭐지..?' },
+                { speaker: '시스템', text: '초대장을 보시겠습니까?',
+                    choices: [
+                        { text: '초대장을 열어본다.', action: 'lookInvitation' }
+                    ]
+                }
             ];
             currentDialogueIndex = 0;
-            gameState.flashLightOn = true;
-            $('#darkness').addClass('flashlight-on');
-            $('.room-item').addClass('flashlight-active');
-
-            // 초기 스포트라이트 위치 설정
-            const spotlightSize = getSpotlightSize();
-            $('#darkness').css('background', 
-                `radial-gradient(
-                    circle ${spotlightSize}px at ${mouseX}px ${mouseY}px,
-                    rgba(0, 0, 0, 0.01) 0%,
-                    rgba(0, 0, 0, 0.3) 30%,
-                    rgba(0, 0, 0, 0.7) 60%,
-                    rgba(0, 0, 0, 0.95) 100%
-                )`
-            );
-
-           // 초기 위치에서 아이템 가시성 체크
-            checkItemVisibility(mouseX, mouseY, spotlightSize);
             showNextDialogue();
+            }, 2500);
 
-        } else if (item === '열쇠') {
-            if ($('#table:visible').length > 0 && !gameState.hasInvitation) {
-                currentScenario = [
-                    { speaker: characterName, text: '열쇠로 책상 서랍을 열어볼까?' }
-                ];
-                currentDialogueIndex = 0;
-                showNextDialogue();
-            } else {
-                typeDialogue('열쇠를 사용할 곳이 없는 것 같다.');
-            }
-        } else if (item === '초대장') {
-            typeDialogue('초대장이다. 이걸로 나갈 수 있을 것 같다.');
+        } else {
+            setTimeout(() => {
+            currentScenario = [
+                { speaker: characterName, text: '아... 밖으로 나오긴 했는데...' },
+                { speaker: characterName, text: '왜 날 저런 방에 가둔거지..?' },
+                { speaker: characterName, text: '아 찝찝하네....' },
+                { speaker: '시스템', text: '게임을 다시 시작하시겠습니까?',
+                    choices: [
+                        { text: '다시 시도', action: 'retry' }
+                    ]
+                }
+            ];
+            currentDialogueIndex = 0;
+            showNextDialogue();
+        }, 2500);
         }
     }
     
+    function lookInvitation(){
+        // 초대장 이미지 모달 생성
+        const invitationModal = $('<div id="invitationModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;"></div>');
+    
+        const invitationImg = $('<img src="/resources/images/items/invitation.png" style="max-width: 90%; max-height: 90%; object-fit: contain; box-shadow: 0 0 30px rgba(255,255,255,0.3);">');
+    
+        const closeBtn = $('<button style="position: absolute; top: 20px; right: 20px; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 5px; cursor: pointer; font-size: 16px;">X</button>');
+    
+        invitationModal.append(invitationImg);
+        invitationModal.append(closeBtn);
+        $('body').append(invitationModal);
+    
+
+        // 닫기 버튼 클릭 이벤트
+        closeBtn.on('click', function() {
+            invitationModal.remove();
+            // 다음 단계로 이동하거나 게임 종료
+            $('#interactionModal').css('display', 'flex');
+            $('#interactionTitle').text('축하합니다!');
+            $('#interactionMessage').text('도파민의 날에 초대되셨습니다!');
+            $('#interactionConfirm').text('확인').off('click').on('click', function() {
+                location.href = "/"; 
+            });
+            $('#interactionCancel').hide();
+        });
+
+        // 이미지 클릭 시 금색 텍스트로 전환
+        invitationImg.on('click', function() {
+            $('#dialogueBox').hide();
+            invitationImg.fadeOut(500, function() {
+                // 검정 바탕에 금색 글씨 표시
+               // 편지지 느낌의 디자인
+                const messageDiv = $('<div style="' +
+                    'max-width: 600px;' +
+                    'padding: 50px 40px;' +
+                    'background: linear-gradient(to bottom, #1a1a1a 0%, #0d0d0d 100%);' +
+                    'color: #d4af37;' +
+                    'font-size: 18px;' +
+                    'font-weight: normal;' +
+                    'line-height: 1.8;' +
+                    'border: 2px solid #1a1a1a;' +
+                    'box-shadow: ' +
+                        '0 0 30px rgba(212, 175, 55, 0.3), ' +
+                        'inset 0 0 100px rgba(212, 175, 55, 0.05);' +
+                    'position: relative;' +
+                    'font-family: Georgia, serif;' +
+                    'text-align: center;' +
+                '"></div>');
+            
+                messageDiv.html(
+                    '<div style="border-bottom: 2px solid #d4af37; padding-bottom: 20px; margin-bottom: 30px;">' +
+                    '<span style="font-size: 36px; color: #f8db63; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 10px rgba(248, 219, 99, 0.5);">초대장</span>' +
+                    '</div>' +
+                    '<div style="text-align: left; padding: 0 20px;">' +
+                        '<p style="margin: 15px 0; color: #d4af37;">안녕하세요. <strong style="color: #f8db63;">' + characterName + '</strong>님</p>' +
+                        '<p style="margin: 15px 0; color: #d4af37;">언제나 챗바퀴같은 지루한 삶을 벗어나고 싶지 않으신가요?</p>' +
+                        '<p style="margin: 15px 0; color: #d4af37;">도파민에 목말라있는 ' + characterName + '님을<br/>제 3회 <strong style="color: #f8db63;">도파민의 날</strong>에 초대합니다.</p>' +
+                        '<div style="margin: 30px 0; padding: 20px;">' +
+                            '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 일시</strong> : 2025년 11월 28일 금요일 저녁 19시 20분</p>' +
+                            '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 장소</strong> : 강남 제로월드</p>' +
+                            '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 준비물</strong> : 적극적인 자세</p>' +
+                        '</div>' +
+                        '<p style="margin: 20px 0; color: #ff4444; font-size: 15px; font-style: italic;">' +
+                            '⪼ <strong>주의사항</strong> : 주최자의 사정에 따라 날짜 및 시간 변동이 있을 수도 있습니다.' +
+                        '</p>' +
+                    '</div>' 
+                );
+
+                invitationModal.append(messageDiv);
+                messageDiv.hide().fadeIn(1000);
+                    
+            });
+        });
+            
+        // 배경 클릭시에도 닫기
+        invitationModal.on('click', function(e) {
+            if (e.target === this) {
+                closeBtn.click();
+            }
+        });
+    }
+
     // 방 아이템 클릭
     $('#door').on('click', function() {
         if(!gameState.flashLightOn) return;
@@ -658,7 +803,9 @@ $(document).ready(function() {
             currentDialogueIndex = 0;
             showNextDialogue();
         }else if (gameState.doorUnlocked) {
-            $('#victoryModal').css('display', 'flex');
+            currentScenario = dialogueScenarios['lookDoor'];
+            currentDialogueIndex = 0;
+            showNextDialogue();
         } else {
             typeDialogue('문이 잠겨있다. 어떻게 열어야 할까?');
         }
@@ -673,7 +820,7 @@ $(document).ready(function() {
                 { speaker: characterName, text: '열쇠로 서랍을 열어볼까?' },
                 { speaker: '시스템', text: '찰칵! 서랍이 열렸다!' },
                 { speaker: '시스템', text: '철컥... 문이 열리는 소리가 들렸다!' },
-                { speaker: characterName, text: '뭐지? 문도 열렸나..? 드디어?',
+                { speaker: characterName, text: '뭐지? 문도 열렸나..? ',
                     choices:[
                         {text:'서랍을 확인한다.', action:'lookDrawer'},
                         {text:'문을 확인한다.', action:'lookDoor'},
@@ -681,15 +828,10 @@ $(document).ready(function() {
                 }
             ];
             currentDialogueIndex = 0;
-            gameState.hasInvitation = true;
             gameState.doorUnlocked = true;
             gameState.selectedItem = null; // 아이템 사용 후 선택 해제
             $('.inventory-item').removeClass('selected');
             $('#gameScreen').css('cursor', 'default');
-            
-            setTimeout(() => {
-                addToInventory('초대장');
-            }, 2000);
             
             showNextDialogue();
         }
@@ -707,7 +849,7 @@ $(document).ready(function() {
         else {
             currentScenario = [
                 { speaker: characterName, text: '서랍이 잠겨있다.' },
-                { speaker: characterName, text: '인벤토리에서 열쇠를 선택해서 사용해보자.' }
+                { speaker: characterName, text: '어떻게 열지?' }
             ];
             currentDialogueIndex = 0;
             showNextDialogue();
@@ -717,9 +859,25 @@ $(document).ready(function() {
     $('#book').on('click', function() {
     if(!gameState.flashLightOn) return;
     if (!gameState.hasKey) {
-        currentScenario = dialogueScenarios['examineDesk'];
-        currentDialogueIndex = 0;
-        showNextDialogue();
+        // 책 처음 조사
+        if(!gameState.hasExaminedBook){
+            currentScenario = dialogueScenarios['examineBook'];
+            currentDialogueIndex = 0;
+            gameState.hasExaminedBook = true;
+            showNextDialogue();
+        }else{
+            const bookChoices = [
+                {text: '명탐정 코난을 읽어본다.', action:'FirstBook'},
+                {text: '링을 읽어본다.', action:'SecondBook'},
+                {text: '처음이라는 도파민을 읽어본다.', action:'ThirdBook'},
+                {text: '책 볼 시간이 없어. 다른 데를 더 찾아보자.', action:'leaveBook'}
+            ];
+
+            $('#speakerName').text(characterName);
+            $('#dialogueText').text('책을 살펴볼까?');
+            $('#continueBtn').hide();
+            showChoices(bookChoices);
+        }
     } else {
         typeDialogue('이미 책을 확인했다.');
     }
@@ -743,7 +901,7 @@ $(document).ready(function() {
     // 모달 배경 클릭시 닫기
     $('.modal-overlay').on('click', function(e) {
         if (e.target === this) {
-            $(this).hide();
+            location.reload();
         }
     });
     
