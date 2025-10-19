@@ -6,6 +6,7 @@ $(document).ready(function() {
         hasKey: false,
         hasInvitation: false,
         doorUnlocked: false,
+        drawerUnlocked: false,
         inventory: [],
         currentDialogueIndex: 0,
         currentScene: 'intro',
@@ -200,7 +201,7 @@ $(document).ready(function() {
                 { speaker: characterName, text: '손전등을 켜볼까?',
                     choices: [
                         { text: '손전등을 켠다', action: 'turnOnFlashlight' },
-                        { text: '아껴두자', action: 'saveFlashLight' }
+                        { text: '아껴두자', action: 'saveFlashlight' }
                         
                     ]
                 }
@@ -300,21 +301,44 @@ $(document).ready(function() {
             ],
         };
     }else{
-        $('#interactionModal').css('display', 'flex');
-        $('#interactionTitle').text('독촉장');
-        $('#interactionMessage').text('빨리 초대장을 쓰세요!');
-        
-        $('#interactionConfirm').off('click').on('click', function() {
+        showModal('독촉장', '빨리 초대장을 쓰세요!', 'danger', function(){
             location.href="/";
         });
         
-        $('#interactionCancel').hide();
         return;
     }
     
     let currentScenario = [];
     let currentDialogueIndex = 0;
     let isTyping = false;
+    
+    // 모달 표시 함수
+    function showModal(title, message, type, confirmCallback){
+        const $modal = $('#interactionModal');
+        const $title = $('#interactionTitle');
+        const $confirm = $('#interactionConfirm');
+
+        // 타입에 따른 색상 설정
+        const colors = {
+            'success': { title: '#4CAF50', button: '#4CAF50', border: '#45a049' },
+            'danger': { title: '#ff4444', button: '#ff4444', border: '#ff4443' }
+        };
+
+        const color = colors[type] || colors.danger;
+        
+        $title.text(title).css('color', color.title);
+        $('#interactionMessage').text(message);
+        $confirm.css({
+            'background-color': color.button,
+            'border-color': color.border
+        });
+        
+        $confirm.off('click').on('click', confirmCallback);
+        $('#interactionCancel').hide();
+        $('#continueBtn').hide(); // > 버튼 숨기기
+        
+        $modal.css('display', 'flex');
+    }
     
     // 생명 감소 함수
     function loseHealth(amount = 1) {
@@ -347,15 +371,9 @@ $(document).ready(function() {
     // 게임 오버
     function gameOver() {
         setTimeout(() => {
-            $('#interactionModal').css('display', 'flex');
-            $('#interactionTitle').text('Game Over');
-            $('#interactionMessage').text('생명이 모두 소진되었습니다...');
-            
-            $('#interactionConfirm').off('click').on('click', function() {
+            showModal('Game Over', '생명이 모두 소진되었습니다...', 'danger', function(){
                 location.reload();
             });
-            
-            $('#interactionCancel').hide();
         }, 1000);
     }
     
@@ -489,7 +507,6 @@ $(document).ready(function() {
 
     // 선택 처리
     function handleChoice(action) {
-        currentDialogueIndex = 0;
 
         // 선택한 action 기록
         if (!gameState.chosenActions.includes(action)) {
@@ -637,6 +654,36 @@ $(document).ready(function() {
 
     // 아이템 선택/해제 함수 추가
     function selectItem(item, $element) {
+
+        // 손전등을 클릭했고 아직 켜지지 않은 경우
+        if (item === '손전등' && !gameState.flashLightOn) {
+            gameState.flashLightOn = true;
+            $('#darkness').addClass('flashlight-on');
+            $('.room-item').addClass('flashlight-active');
+            
+            const spotlightSize = getSpotlightSize();
+            $('#darkness').css('background', 
+                `radial-gradient(
+                    circle ${spotlightSize}px at ${mouseX}px ${mouseY}px,
+                    rgba(0, 0, 0, 0.01) 0%,
+                    rgba(0, 0, 0, 0.3) 30%,
+                    rgba(0, 0, 0, 0.7) 60%,
+                    rgba(0, 0, 0, 0.95) 100%
+                )`
+            );
+            checkItemVisibility(mouseX, mouseY, spotlightSize);
+            
+            // 손전등을 켰다는 메시지 표시
+            currentScenario = [
+                { speaker: '시스템', text: '찰칵!' },
+                { speaker: characterName, text: '오! 주변이 보인다!' },
+                { speaker: '시스템', text: '마우스를 움직여서 주변을 탐색해보자!' }
+            ];
+            currentDialogueIndex = 0;
+            showNextDialogue();
+            
+            return;
+        }
         // 이미 선택된 아이템을 다시 클릭하면 해제
         if (gameState.selectedItem === item) {
             gameState.selectedItem = null;
@@ -693,23 +740,25 @@ $(document).ready(function() {
 
         } else {
             setTimeout(() => {
-            currentScenario = [
-                { speaker: characterName, text: '아... 밖으로 나오긴 했는데...' },
-                { speaker: characterName, text: '왜 날 저런 방에 가둔거지..?' },
-                { speaker: characterName, text: '아 찝찝하네....' },
-                { speaker: '시스템', text: '게임을 다시 시작하시겠습니까?',
-                    choices: [
-                        { text: '다시 시도', action: 'retry' }
-                    ]
-                }
-            ];
-            currentDialogueIndex = 0;
-            showNextDialogue();
-        }, 2500);
+                currentScenario = [
+                    { speaker: characterName, text: '아... 밖으로 나오긴 했는데...' },
+                    { speaker: characterName, text: '왜 날 저런 방에 가둔거지..?' },
+                    { speaker: characterName, text: '아 찝찝하네....' },
+                ];
+                currentDialogueIndex = 0;
+                showNextDialogue();
+
+                setTimeout(()=>{
+                    showModal('Game Over', '게임을 다시 시작하시겠습니까?', 'danger', function(){
+                        location.reload();
+                    });
+                }, 5000);
+            }, 2500);
         }
     }
     
     function lookInvitation(){
+        $('#dialogueBox').hide();
         // 초대장 이미지 모달 생성
         const invitationModal = $('<div id="invitationModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;"></div>');
     
@@ -725,19 +774,13 @@ $(document).ready(function() {
         // 닫기 버튼 클릭 이벤트
         closeBtn.on('click', function() {
             invitationModal.remove();
-            // 다음 단계로 이동하거나 게임 종료
-            $('#interactionModal').css('display', 'flex');
-            $('#interactionTitle').text('축하합니다!');
-            $('#interactionMessage').text('도파민의 날에 초대되셨습니다!');
-            $('#interactionConfirm').text('확인').off('click').on('click', function() {
-                location.href = "/"; 
+            showModal('축하합니다!', '제 3회 도파민의 날에 초대되셨습니다!', 'success', function() {
+                location.href = "/";
             });
-            $('#interactionCancel').hide();
         });
 
         // 이미지 클릭 시 금색 텍스트로 전환
         invitationImg.on('click', function() {
-            $('#dialogueBox').hide();
             invitationImg.fadeOut(500, function() {
                 // 검정 바탕에 금색 글씨 표시
                // 편지지 느낌의 디자인
@@ -750,29 +793,28 @@ $(document).ready(function() {
                     'font-weight: normal;' +
                     'line-height: 1.8;' +
                     'border: 2px solid #1a1a1a;' +
-                    'box-shadow: ' +
-                        '0 0 30px rgba(212, 175, 55, 0.3), ' +
-                        'inset 0 0 100px rgba(212, 175, 55, 0.05);' +
                     'position: relative;' +
                     'font-family: Georgia, serif;' +
                     'text-align: center;' +
                 '"></div>');
             
                 messageDiv.html(
-                    '<div style="border-bottom: 2px solid #d4af37; padding-bottom: 20px; margin-bottom: 30px;">' +
-                    '<span style="font-size: 36px; color: #f8db63; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 10px rgba(248, 219, 99, 0.5);">초대장</span>' +
+                    '<div style="padding-bottom: 20px; margin-bottom: 30px;">' +
+                        '<span style="font-size: 36px; color: #f8db63; font-weight: bold; letter-spacing: 3px;">︵‿⊹︵‿୨</span>' +
+                        '<span style="font-size: 36px; color: #f8db63; font-weight: bold; letter-spacing: 3px;">초대장</span>' +
+                        '<span style="font-size: 36px; color: #f8db63; font-weight: bold; letter-spacing: 3px;">୧‿︵⊹‿︵</span>' +
                     '</div>' +
                     '<div style="text-align: left; padding: 0 20px;">' +
                         '<p style="margin: 15px 0; color: #d4af37;">안녕하세요. <strong style="color: #f8db63;">' + characterName + '</strong>님</p>' +
                         '<p style="margin: 15px 0; color: #d4af37;">언제나 챗바퀴같은 지루한 삶을 벗어나고 싶지 않으신가요?</p>' +
-                        '<p style="margin: 15px 0; color: #d4af37;">도파민에 목말라있는 ' + characterName + '님을<br/>제 3회 <strong style="color: #f8db63;">도파민의 날</strong>에 초대합니다.</p>' +
+                        '<p style="margin: 15px 0; color: #d4af37;">도파민에 목말라있는 ' + characterName + '님을 <strong style="color: #f8db63;">제 3회 도파민의 날</strong>에 초대합니다.</p>' +
                         '<div style="margin: 30px 0; padding: 20px;">' +
                             '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 일시</strong> : 2025년 11월 28일 금요일 저녁 19시 20분</p>' +
                             '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 장소</strong> : 강남 제로월드</p>' +
                             '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 준비물</strong> : 적극적인 자세</p>' +
                         '</div>' +
                         '<p style="margin: 20px 0; color: #ff4444; font-size: 15px; font-style: italic;">' +
-                            '⪼ <strong>주의사항</strong> : 주최자의 사정에 따라 날짜 및 시간 변동이 있을 수도 있습니다.' +
+                            '⪼ <strong>주의사항</strong> : 주최자의 사정에 따라 시간 변동이 있을 수도 있습니다.' +
                         '</p>' +
                     '</div>' 
                 );
@@ -814,8 +856,13 @@ $(document).ready(function() {
     //테이블 클릭
     $('#table').on('click', function() {
         if(!gameState.flashLightOn) return;
+
+        // 서랍이 이미 열렸고 초대장을 아직 안 가져간 경우
+        if (gameState.drawerUnlocked && !gameState.hasInvitation) {
+           handleChoice('lookDrawer');
+        }
         // 열쇠가 선택된 상태에서 책상 클릭
-        if (gameState.selectedItem === '열쇠' && gameState.hasKey && !gameState.hasInvitation) {
+        else if (gameState.selectedItem === '열쇠' && gameState.hasKey && !gameState.drawerUnlocked) {
             currentScenario = [
                 { speaker: characterName, text: '열쇠로 서랍을 열어볼까?' },
                 { speaker: '시스템', text: '찰칵! 서랍이 열렸다!' },
@@ -829,6 +876,7 @@ $(document).ready(function() {
             ];
             currentDialogueIndex = 0;
             gameState.doorUnlocked = true;
+            gameState.drawerUnlocked = true;
             gameState.selectedItem = null; // 아이템 사용 후 선택 해제
             $('.inventory-item').removeClass('selected');
             $('#gameScreen').css('cursor', 'default');
@@ -886,23 +934,6 @@ $(document).ready(function() {
     $('#chair').on('click', function() {
         if(!gameState.flashLightOn) return;
         typeDialogue('평범한 의자다. 특별한 것은 없어 보인다.');
-    });
-    
-
-    // 승리 모달 버튼
-    $('#nextStageBtn').on('click', function() {
-        alert('다음 단계가 준비 중입니다!');
-    });
-    
-    $('#restartBtn').on('click', function() {
-        location.reload();
-    });
-    
-    // 모달 배경 클릭시 닫기
-    $('.modal-overlay').on('click', function(e) {
-        if (e.target === this) {
-            location.reload();
-        }
     });
     
     // 게임 시작
