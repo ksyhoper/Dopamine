@@ -302,7 +302,7 @@ $(document).ready(function() {
         };
     }else{
         showModal('독촉장', '빨리 초대장을 쓰세요!', 'danger', function(){
-            location.href="/";
+            location.href="./chooseCharacter.html";
         });
         
         return;
@@ -697,9 +697,9 @@ $(document).ready(function() {
             
             // 커서 변경 (선택된 아이템에 따라)
             if (item === '열쇠') {
-                $('#gameScreen').css('cursor', 'url(/resources/images/items/key-cursor.png), auto');
+                $('#gameScreen').css('cursor', 'url(../resources/images/items/key-cursor.png), auto');
             } else if (item === '손전등') {
-                $('#gameScreen').css('cursor', 'url(/resources/images/items/flashlight-cursor.png), auto');
+                $('#gameScreen').css('cursor', 'url(../resources/images/items/flashlight-cursor.png), auto');
             } else {
                 $('#gameScreen').css('cursor', 'pointer');
             }
@@ -714,7 +714,7 @@ $(document).ready(function() {
         $('#playerInfo').hide();
         
         $('#sceneBackground').css({
-            'background-image': 'url(/resources/images/outside.png)',
+            'background-image': 'url(../resources/images/outside.png)',
             'background-size': 'cover',
             'background-position': 'center',
             'background-repeat' : 'no-repeat', 
@@ -762,7 +762,7 @@ $(document).ready(function() {
         // 초대장 이미지 모달 생성
         const invitationModal = $('<div id="invitationModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;"></div>');
     
-        const invitationImg = $('<img src="/resources/images/items/invitation.png" style="max-width: 90%; max-height: 90%; object-fit: contain; box-shadow: 0 0 30px rgba(255,255,255,0.3);">');
+        const invitationImg = $('<img src="../resources/images/items/invitation.png" style="max-width: 90%; max-height: 90%; object-fit: contain; box-shadow: 0 0 30px rgba(255,255,255,0.3);">');
     
         const closeBtn = $('<button style="position: absolute; top: 20px; right: 20px; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 5px; cursor: pointer; font-size: 16px;">X</button>');
     
@@ -775,7 +775,7 @@ $(document).ready(function() {
         closeBtn.on('click', function() {
             invitationModal.remove();
             showModal('축하합니다!', '제 3회 도파민의 날에 초대되셨습니다!', 'success', function() {
-                location.href = "/";
+                location.href = "./chooseCharacter.html";
             });
         });
 

@@ -142,7 +142,17 @@ $(document).ready(function() {
             $('#confirmCharacter').text('확정 중...');
             console.log('최종 선택된 캐릭터:', selectedCharacter);
             
-            $.ajax({
+            // localStorage에 캐릭터 정보 저장
+            localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
+            
+            setTimeout(function() {
+                    // 페이지 이동
+                    window.location.href = './blackRoom.html';
+            }, 500);
+
+            $('#confirmCharacter').text('캐릭터 확정');
+
+            /* $.ajax({
                 url: '/character/select',
                 method: 'POST',
                 data: {
@@ -160,7 +170,7 @@ $(document).ready(function() {
                     showModal('오류','캐릭터 선택 중 오류가 발생했습니다.');
                     $('#confirmCharacter').text('캐릭터 확정');
                 }
-            });
+            }); */
         }, function() {
             // 취소 버튼을 눌렀을 때는 아무것도 하지 않음 (버튼 텍스트 그대로 유지)
             console.log('캐릭터 선택 취소됨');

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Dopamine</title>
+        <link rel="stylesheet" href="../resources/css/mainStyle.css">
+        <link rel="stylesheet" href="../resources/css/chooseCharacter.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </head>
+    <body>
+        <div id="characterSelectScreen">
+            <h2>캐릭터 선택</h2>
+            <p>당신의 캐릭터를 선택하세요</p>
+            <div class="characterGrid" id="characterGrid">
+                <!-- 캐릭터 1: 승연 -->
+                <div class="character-container">
+                    <div class="characterOption" 
+                        data-name="승연" 
+                        data-birthday="1998-10-10"
+                        data-description="쫄보다."
+                        data-alias="연승"
+                        data-picture="연승.png"
+                        data-authority="1"
+                        data-index="0">
+                        <img class="characterImg" alt="승연" src="../resources/images/character/연승.png" />
+                        <div class="characterName">승연</div>
+                    </div>
+                </div>
+                <div class="character-info-slide" data-character="0">
+                    <div class="info-content">
+                        <div class="info-item">
+                            <span class="label">이름:</span>
+                            <span class="value">승연</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">별명:</span>
+                            <span class="value">연승</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">생년월일:</span>
+                            <span class="value">1998-10-10</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">설명:</span>
+                            <span class="value description-value">쫄보다.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 캐릭터 2: 수연 -->
+                <div class="character-container">
+                    <div class="characterOption" 
+                        data-name="수연" 
+                        data-birthday="1998-03-25"
+                        data-description="승연보다 더한 쫄보다."
+                        data-alias="빡수"
+                        data-picture="빡수.png"
+                        data-authority="1"
+                        data-index="1">
+                        <img class="characterImg" alt="수연" src="../resources/images/character/빡수.png" />
+                        <div class="characterName">수연</div>
+                    </div>
+                </div>
+                <div class="character-info-slide" data-character="1">
+                    <div class="info-content">
+                        <div class="info-item">
+                            <span class="label">이름:</span>
+                            <span class="value">수연</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">별명:</span>
+                            <span class="value">빡수</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">생년월일:</span>
+                            <span class="value">1998-03-25</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">설명:</span>
+                            <span class="value description-value">승연보다 더한 쫄보다.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 캐릭터 3: 예은 -->
+                <div class="character-container">
+                    <div class="characterOption" 
+                        data-name="예은" 
+                        data-birthday="1995-05-04"
+                        data-description="제일 용감하다."
+                        data-alias="예은공듀"
+                        data-picture="예은.png"
+                        data-authority="2"
+                        data-index="2">
+                        <img class="characterImg" alt="예은" src="../resources/images/character/예은.png" />
+                        <div class="characterName">예은</div>
+                    </div>
+                </div>
+                <div class="character-info-slide" data-character="2">
+                    <div class="info-content">
+                        <div class="info-item">
+                            <span class="label">이름:</span>
+                            <span class="value">예은</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">별명:</span>
+                            <span class="value">예은공듀</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">생년월일:</span>
+                            <span class="value">1995-05-04</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">설명:</span>
+                            <span class="value description-value">제일 용감하다.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 캐릭터 4: 지혜 -->
+                <div class="character-container">
+                    <div class="characterOption" 
+                        data-name="지혜" 
+                        data-birthday="2004-01-13"
+                        data-description="가장 쫄보다."
+                        data-alias="빤쮸토끼"
+                        data-picture="지혜.png"
+                        data-authority="2"
+                        data-index="3">
+                        <img class="characterImg" alt="지혜" src="../resources/images/character/지혜.png" />
+                        <div class="characterName">지혜</div>
+                    </div>
+                </div>
+                <div class="character-info-slide" data-character="3">
+                    <div class="info-content">
+                        <div class="info-item">
+                            <span class="label">이름:</span>
+                            <span class="value">지혜</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">별명:</span>
+                            <span class="value">빤쮸토끼</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">생년월일:</span>
+                            <span class="value">2004-01-13</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">설명:</span>
+                            <span class="value description-value">가장 쫄보다.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button id="confirmCharacter">캐릭터 확정</button>
+        </div>
+        
+        <!-- 모달 -->
+        <div class="modal-overlay" id="modal">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-message" id="modalMessage"></div>
+                <button class="modal-button" id="modalClose">확인</button>
+            </div>
+        </div>
+        
+        <script src="../resources/js/Character.js"></script>
+    </body>
+</html>

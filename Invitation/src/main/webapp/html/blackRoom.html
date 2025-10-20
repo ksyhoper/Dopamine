@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dopamine - 깜깜한 방</title>
+    <link rel="stylesheet" href="../resources/css/mainStyle.css">
+    <link rel="stylesheet" href="../resources/css/blackRoom.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- 게임 화면 -->
+        <div id="gameScreen">
+            <!-- 배경 이미지 또는 장면 -->
+            <div id="sceneBackground"></div>
+            
+            <!-- 캐릭터 이미지 (왼쪽에 표시) -->
+            <div id="characterDisplay">
+                <img class="character-sprite" id="playerSprite" src="" alt="">
+            </div>
+            
+            <!-- 어둠 효과 (필요시 활성화) -->
+            <div id="darkness">
+                <div class="room-item" id="door">
+                    <img src="../resources/images/items/blackDoor.png" alt="문" class="item-image">
+                </div>
+                
+                <div class="room-item" id="table">
+                    <img src="../resources/images/items/blackDesk.png" alt="책상" class="item-image">
+                </div>
+                
+                <div class="room-item" id="book">
+                    <img src="../resources/images/items/book.png" alt="책" class="item-image">
+                </div>
+
+                <div class="room-item" id="chair">
+                    <img src="../resources/images/items/blackChair.png" alt="의자" class="item-image">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 대화 창 (하단 고정) -->
+        <div id="dialogueBox">
+            <div id="dialogueBox2">
+                <div class="speaker-name" id="speakerName"></div>
+                <input type="hidden" class="character-authority" id="characterAuthority" value="">
+                <div class="dialogue-text-container">
+                    <p class="dialogue-text" id="dialogueText"></p>
+                </div>
+                <div class="dialogue-controls">
+                    <button class="dialogue-btn" id="continueBtn">></button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 플레이어 정보 (상단 좌측) -->
+        <div id="playerInfo">
+            <div class="character-name" id="characterName">캐릭터 : </div> 
+            <div class="health-container">
+                <span class="health-label">생명 :</span>
+                <div class="heart" data-heart="1">
+                    <img class="heartImg" src="../resources/images/heart.png" />
+                </div>
+                <div class="heart" data-heart="2">
+                    <img class="heartImg" src="../resources/images/heart.png" />
+                </div>
+                <div class="heart" data-heart="3">
+                    <img class="heartImg" src="../resources/images/heart.png" />
+                </div>
+            </div>
+        </div>
+        
+        <!-- 인벤토리 (상단 우측) -->
+        <div id="inventory">
+            <div class="inventory-title">가방</div>
+            <div class="inventory-items" id="inventoryItems">
+                <!-- 아이템들이 여기에 추가됩니다 -->
+            </div>
+        </div>
+        
+        <!-- 선택지 메뉴 (대화 중 선택) -->
+        <div id="choiceMenu" style="display: none;">
+            <div class="choice-container" id="choiceContainer">
+                <!-- 선택지들이 동적으로 추가됩니다 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 상호작용 모달 -->
+    <div class="modal-overlay" id="interactionModal">
+        <div class="modal-content">
+            <div class="modal-title" id="interactionTitle">제목</div>
+            <div class="modal-message" id="interactionMessage">메시지</div>
+            <div class="modal-buttons">
+                <button class="modal-button confirm" id="interactionConfirm">확인</button>
+                <button class="modal-button cancel" id="interactionCancel">취소</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 게임 완료 모달 -->
+    <div class="modal-overlay" id="victoryModal">
+        <div class="modal-content victory">
+            <div class="modal-title">탈출 성공!</div>
+            <div class="modal-message">축하합니다! 깜깜한 방에서 탈출했습니다!</div>
+            <div class="modal-buttons">
+                <button class="modal-button confirm" id="nextStageBtn">다음 단계</button>
+                <button class="modal-button cancel" id="restartBtn">다시 시작</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // localStorage에서 캐릭터 정보 불러오기
+        const character = JSON.parse(localStorage.getItem('selectedCharacter'));
+        
+        if (character) {
+            // 캐릭터 정보 표시
+            document.getElementById('speakerName').textContent = character.name;
+            document.getElementById('characterName').textContent = '캐릭터 : ' + character.name;
+            document.getElementById('characterAuthority').value = character.authority;
+            
+            // 캐릭터 이미지 설정
+            const playerSprite = document.getElementById('playerSprite');
+            playerSprite.src = '../resources/images/character/' + character.picture;
+            playerSprite.alt = character.name;
+        } else {
+            // 캐릭터 정보가 없으면 선택 페이지로 이동
+            alert('캐릭터를 먼저 선택해주세요.');
+            window.location.href = 'chooseCharacter.html';
+        }
+    </script>
+    <script src="../resources/js/blackRoom.js"></script>
+</body>
+</html>
