@@ -730,13 +730,15 @@ $(document).ready(function() {
         $('#inventory').hide();
         $('#playerInfo').hide();
         
-        $('#sceneBackground').css({
-            'background-image': 'url(../resources/images/outside.png)',
-            'background-size': 'cover',
-            'background-position': 'center',
-            'background-repeat' : 'no-repeat', 
-            'opacity' : '0'
-        }).animate({opacity:1}, 1500);
+    const isMobile = window.innerWidth <= 768;
+
+    $('#sceneBackground').css({
+        'background-image': 'url(../resources/images/outside.png)',
+        'background-size': 'cover',
+        'background-position': isMobile ? 'center top' : 'center',
+        'background-repeat': 'no-repeat',
+        'opacity': '0'
+    }).animate({opacity:1}, 1500);
 
         // 초대장 유무에 따라 다른 엔딩
         if (gameState.hasInvitation) {
