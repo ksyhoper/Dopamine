@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Merry Christmas</title>
+    <link rel="stylesheet" href="../resources/css/christMas.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+ <div class="ground"></div>
+    
+    <div class="container">
+        <div class="tree" id="tree"></div>
+    </div>
+
+    <script>
+        const treeLines = [
+            '         ⭐',
+            '          *',
+            '         ***',
+            '        *****',
+            '       *******',
+            '      *********',
+            '     ***********',
+            '    *************',
+            '   ***************',
+            '  *****************',
+            '         |||',
+            '         |||'
+        ];
+
+       // 트리 HTML 생성
+        let treeHTML = '';
+        treeLines.forEach((line, lineIndex) => {
+           let lineHTML = '';
+
+            for (let char of line) {
+                if (char === '*') {
+                    lineHTML += `<span class="leaf">*</span>`;
+                } else if (char === '|') {
+                    lineHTML += `<span class="trunk">|</span>`;
+                } else if (char === '⭐') {
+                    lineHTML += `<span class="star-glow" style="color:#ff0">⭐</span>`;
+                } else {
+                    lineHTML += char; // 공백, 다른 문자
+                }
+            }
+
+            treeHTML += lineHTML + '\n';
+        });
+
+        document.getElementById('tree').innerHTML = treeHTML;
+
+        const treeElement = document.getElementById('tree');
+
+        treeElement.innerHTML = treeHTML;
+        
+        // 트리에서 * 위치들을 저장
+        const asteriskPositions = [];
+        treeLines.forEach((line, lineIndex) => {
+            if (lineIndex > 0 && lineIndex < 10) { // 별과 몸통 제외, 트리 부분만
+                for (let i = 0; i < line.length; i++) {
+                    if (line[i] === '*') {
+                        asteriskPositions.push({
+                            lineIndex: lineIndex,
+                            charPos: i,
+                            y: lineIndex * 1.2
+                        });
+                    }
+                }
+            }
+        });
+
+        // 랜덤한 RGB 색상 생성
+        function getRandomColor() {
+            const r = Math.floor(Math.random() * 256);
+            const g = Math.floor(Math.random() * 256);
+            const b = Math.floor(Math.random() * 256);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // 랜덤한 위치에 오너먼트 생성
+        function createRandomOrnament() {
+            if (asteriskPositions.length === 0) return;
+            
+            // 랜덤한 * 위치 선택
+            const randomPos = asteriskPositions[Math.floor(Math.random() * asteriskPositions.length)];
+            
+            const ornament = document.createElement('span');
+            ornament.className = 'ornament';
+            ornament.textContent = '●';
+            
+            // 완전 랜덤 RGB 색상
+            const randomColor = getRandomColor();
+            ornament.style.color = randomColor;
+            
+            // 위치 설정 - * 위치 기준으로 정확하게 배치
+            ornament.style.top = randomPos.y  + 'em';
+            ornament.style.left = randomPos.charPos + 'ch';
+            
+            treeElement.appendChild(ornament);
+            
+            // 2초 후 제거 (애니메이션 시간과 동일)
+            setTimeout(() => {
+                ornament.remove();
+            }, 2000);
+        }
+
+        // 랜덤한 간격으로 랜덤한 개수의 오너먼트 생성
+        function createOrnamentBurst() {
+            // 1~5개의 랜덤한 개수
+            const count = Math.floor(Math.random() * 5) + 1;
+            
+            for (let i = 0; i < count; i++) {
+                // 각 오너먼트를 약간의 시간차를 두고 생성
+                setTimeout(() => {
+                    createRandomOrnament();
+                }, i * 100);
+            }
+        }
+
+        // 300ms~800ms마다 랜덤하게 오너먼트 생성
+        function scheduleNextBurst() {
+            const delay = Math.random() * 500 + 300; // 300~800ms
+            setTimeout(() => {
+                createOrnamentBurst();
+                scheduleNextBurst();
+            }, delay);
+        }
+
+        // 오너먼트 생성 시작
+        scheduleNextBurst();
+
+        // 눈송이 생성
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.className = 'snowflake';
+            
+            // 다양한 눈송이 모양
+            const shapes = ['*', '·', '•', '❅', '❆', '✻'];
+            snowflake.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+            snowflake.style.top=0;
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.animationDuration = Math.random() * 3 + 4 + 's';
+            snowflake.style.fontSize = Math.random() * 8 + 10 + 'px';
+            
+            document.body.appendChild(snowflake);
+            
+            setTimeout(() => {
+                snowflake.remove();
+            }, 7000);
+        }
+
+        // 눈송이 계속 생성
+        setInterval(createSnowflake, 150);
+        
+        // 초기 눈송이
+        for (let i = 0; i < 40; i++) {
+            setTimeout(createSnowflake, i * 100);
+        }
+    </script>
+</body>
+</html>
