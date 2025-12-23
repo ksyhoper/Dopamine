@@ -19,6 +19,26 @@ $(document).ready(function() {
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
 
+    // 마우스 또는 터치 좌표 업데이트 함수
+    function updateFlashlightPosition(x, y) {
+        mouseX = x;
+        mouseY = y;
+        
+        if (gameState.flashLightOn) {
+            const spotlightSize = getSpotlightSize();
+            $('#darkness').css('background', 
+                `radial-gradient(
+                    circle ${spotlightSize}px at ${mouseX}px ${mouseY}px,
+                    rgba(0, 0, 0, 0.01) 0%,
+                    rgba(0, 0, 0, 0.3) 30%,
+                    rgba(0, 0, 0, 0.7) 60%,
+                    rgba(0, 0, 0, 0.95) 100%
+                )`
+            );
+            checkItemVisibility(mouseX, mouseY, spotlightSize);
+        }
+    }
+
     // 화면 크기 기준으로 스포트라이트 크기 계산
     function getSpotlightSize() {
         const screenAvg = (window.innerWidth + window.innerHeight) / 2;
@@ -62,26 +82,23 @@ $(document).ready(function() {
         });
     }
 
-    // 마우스 움직임 추적 (손전등용)
+    // 마우스 움직임 추적 (PC용)
     $(document).mousemove(function(e) {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        
-        if (gameState.flashLightOn) {
-            const spotlightSize = getSpotlightSize();
-            $('#darkness').css('background', 
-                `radial-gradient(
-                    circle ${spotlightSize}px at ${mouseX}px ${mouseY}px,
-                    rgba(0, 0, 0, 0.01) 0%,
-                    rgba(0, 0, 0, 0.3) 30%,
-                    rgba(0, 0, 0, 0.7) 60%,
-                    rgba(0, 0, 0, 0.95) 100%
-                )`
-            );
-            // 손전등 범위 안의 물건만 보이게
-            checkItemVisibility(mouseX, mouseY, spotlightSize);
-        }
+        updateFlashlightPosition(e.clientX, e.clientY);
     });
+
+    // 터치 움직임 추적 (모바일용)
+    $(document).on('touchmove', function(e) {
+        e.preventDefault(); // 스크롤 방지
+        const touch = e.originalEvent.touches[0];
+        updateFlashlightPosition(touch.clientX, touch.clientY);
+    });
+
+    // 터치 시작 (모바일용)
+    $(document).on('touchstart', function(e) {
+        const touch = e.originalEvent.touches[0];
+        updateFlashlightPosition(touch.clientX, touch.clientY);
+    })
     
     // 캐릭터별 대사 시나리오
     const characterName = $('.speaker-name').text().trim();
@@ -713,13 +730,15 @@ $(document).ready(function() {
         $('#inventory').hide();
         $('#playerInfo').hide();
         
-        $('#sceneBackground').css({
-            'background-image': 'url(../resources/images/outside.png)',
-            'background-size': 'cover',
-            'background-position': 'center',
-            'background-repeat' : 'no-repeat', 
-            'opacity' : '0'
-        }).animate({opacity:1}, 1500);
+    const isMobile = window.innerWidth <= 768;
+
+    $('#sceneBackground').css({
+        'background-image': 'url(../resources/images/outside.png)',
+        'background-size': 'cover',
+        'background-position': isMobile ? 'center top' : 'center',
+        'background-repeat': 'no-repeat',
+        'opacity': '0'
+    }).animate({opacity:1}, 1500);
 
         // 초대장 유무에 따라 다른 엔딩
         if (gameState.hasInvitation) {
@@ -761,15 +780,14 @@ $(document).ready(function() {
         $('#dialogueBox').hide();
         // 초대장 이미지 모달 생성
         const invitationModal = $('<div id="invitationModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;"></div>');
-    
+
         const invitationImg = $('<img src="../resources/images/items/invitation.png" style="max-width: 90%; max-height: 90%; object-fit: contain; box-shadow: 0 0 30px rgba(255,255,255,0.3);">');
-    
+
         const closeBtn = $('<button style="position: absolute; top: 20px; right: 20px; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 5px; cursor: pointer; font-size: 16px;">X</button>');
-    
+
         invitationModal.append(invitationImg);
         invitationModal.append(closeBtn);
         $('body').append(invitationModal);
-    
 
         // 닫기 버튼 클릭 이벤트
         closeBtn.on('click', function() {
@@ -782,14 +800,22 @@ $(document).ready(function() {
         // 이미지 클릭 시 금색 텍스트로 전환
         invitationImg.on('click', function() {
             invitationImg.fadeOut(500, function() {
-                // 검정 바탕에 금색 글씨 표시
-               // 편지지 느낌의 디자인
+                // 화면 크기에 따른 반응형 크기 계산
+                const isMobile = window.innerWidth <= 768;
+                const maxWidth = isMobile ? '90%' : '600px';
+                const padding = isMobile ? 'clamp(25px, 8vw, 50px) clamp(20px, 6vw, 40px)' : '50px 40px';
+                const titleSize = isMobile ? 'clamp(12x, 8vw, 36px)' : '36px';
+                const bodySize = isMobile ? 'clamp(10px, 4vw, 18px)' : '18px';
+                const sectionPadding = isMobile ? 'clamp(15px, 5vw, 20px)' : '20px';
+                const infoSize = isMobile ? 'clamp(10px, 3.5vw, 15px)' : '15px';
+                
+                // 편지지 느낌의 디자인
                 const messageDiv = $('<div style="' +
-                    'max-width: 600px;' +
-                    'padding: 50px 40px;' +
+                    'max-width: ' + maxWidth + ';' +
+                    'padding: ' + padding + ';' +
                     'background: linear-gradient(to bottom, #1a1a1a 0%, #0d0d0d 100%);' +
                     'color: #d4af37;' +
-                    'font-size: 18px;' +
+                    'font-size: ' + bodySize + ';' +
                     'font-weight: normal;' +
                     'line-height: 1.8;' +
                     'border: 2px solid #1a1a1a;' +
@@ -800,20 +826,20 @@ $(document).ready(function() {
             
                 messageDiv.html(
                     '<div style="padding-bottom: 20px; margin-bottom: 30px;">' +
-                        '<span style="font-size: 36px; color: #f8db63; font-weight: bold; letter-spacing: 3px;">︵‿⊹︵‿୨</span>' +
-                        '<span style="font-size: 36px; color: #f8db63; font-weight: bold; letter-spacing: 3px;">초대장</span>' +
-                        '<span style="font-size: 36px; color: #f8db63; font-weight: bold; letter-spacing: 3px;">୧‿︵⊹‿︵</span>' +
+                        '<span style="font-size: ' + titleSize + '; color: #f8db63; font-weight: bold; letter-spacing: 3px;">︵‿⊹︵‿୨</span>' +
+                        '<span style="font-size: ' + titleSize + '; color: #f8db63; font-weight: bold; letter-spacing: 3px;">초대장</span>' +
+                        '<span style="font-size: ' + titleSize + '; color: #f8db63; font-weight: bold; letter-spacing: 3px;">୧‿︵⊹‿︵</span>' +
                     '</div>' +
-                    '<div style="text-align: left; padding: 0 20px;">' +
+                    '<div style="text-align: left; padding: 0 ' + (isMobile ? '10px' : '20px') + ';">' +
                         '<p style="margin: 15px 0; color: #d4af37;">안녕하세요. <strong style="color: #f8db63;">' + characterName + '</strong>님</p>' +
                         '<p style="margin: 15px 0; color: #d4af37;">언제나 챗바퀴같은 지루한 삶을 벗어나고 싶지 않으신가요?</p>' +
                         '<p style="margin: 15px 0; color: #d4af37;">도파민에 목말라있는 ' + characterName + '님을 <strong style="color: #f8db63;">제 3회 도파민의 날</strong>에 초대합니다.</p>' +
-                        '<div style="margin: 30px 0; padding: 20px;">' +
-                            '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 일시</strong> : 2025년 11월 28일 금요일 저녁 19시 20분</p>' +
-                            '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 장소</strong> : 강남 제로월드</p>' +
-                            '<p style="margin: 8px 0; color: #d4af37;"><strong>⪼ 준비물</strong> : 적극적인 자세</p>' +
+                        '<div style="margin: 30px 0; padding: ' + sectionPadding + ';">' +
+                            '<p style="margin: 8px 0; color: #d4af37; font-size: ' + infoSize + ';"><strong>⪼ 일시</strong> : 2025년 11월 28일 금요일 저녁 19시 20분</p>' +
+                            '<p style="margin: 8px 0; color: #d4af37; font-size: ' + infoSize + ';"><strong>⪼ 장소</strong> : 강남 제로월드</p>' +
+                            '<p style="margin: 8px 0; color: #d4af37; font-size: ' + infoSize + ';"><strong>⪼ 준비물</strong> : 적극적인 자세</p>' +
                         '</div>' +
-                        '<p style="margin: 20px 0; color: #ff4444; font-size: 15px; font-style: italic;">' +
+                        '<p style="margin: 20px 0; color: #ff4444; font-size: ' + (isMobile ? 'clamp(11px, 3vw, 15px)' : '15px') + '; font-style: italic;">' +
                             '⪼ <strong>주의사항</strong> : 주최자의 사정에 따라 시간 변동이 있을 수도 있습니다.' +
                         '</p>' +
                     '</div>' 
