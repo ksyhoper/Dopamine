@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <title>Merry Christmas</title>
     <link rel="stylesheet" href="../resources/css/christMas.css">
+    <link rel="icon" href="../resources/images/favicon.ico"/>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
  <div class="ground"></div>
-    <iframe width="0" height="0" src="https://www.youtube.com/embed/1CYbySbtyF0?si=wMCw9jO2OGU36tKO" title="YouTube video player" frameborder="0" allow="autoplay" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+
     <div class="container">
         <div class="tree" id="tree"></div>
     </div>
+
+    <div id="player"></div>
 
     <script>
         const treeLines = [
@@ -158,6 +162,43 @@
         for (let i = 0; i < 40; i++) {
             setTimeout(createSnowflake, i * 100);
         }
+
+        var player;
+        let isPlaying= false;
+        let playerReady = false;
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '0',
+                width: '0',
+                videoId: 'SgqQyXHRdtg',
+                playerVars: {
+                    loop: 1,
+                    playlist:'SgqQyXHRdtg'
+                }, 
+                events:{
+                    onReady: () => {
+                        playerReady = true;
+                    }
+                }
+            });
+        }
+
+        treeElement.addEventListener('click', () => {
+            if(!player || !playerReady) return;
+
+            if(isPlaying){
+                player.pauseVideo();
+                isPlaying = false;
+                treeElement.classList.remove('playing');
+            }else{
+                player.unMute();
+                player.playVideo();
+                player.setVolume(30);
+                isPlaying= true;
+                treeElement.classList.add('playing');
+            }
+        });
     </script>
 </body>
 </html>

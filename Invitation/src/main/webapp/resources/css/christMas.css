@@ -31,6 +31,7 @@ body {
     text-shadow: 0 0 5px #006837;
     position: relative;
     transform-origin: center top;
+    cursor: pointer;
 }
 
 .leaf {
